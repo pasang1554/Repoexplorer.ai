@@ -18,6 +18,7 @@ dependencies = [
     "pydantic-settings",
     "python-dotenv",
     "numpy<2",
+    "langchain-google-genai",
 ]
 
 [tool.hatch.build.targets.wheel]
