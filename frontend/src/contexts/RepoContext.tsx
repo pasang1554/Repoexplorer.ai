@@ -28,8 +28,8 @@ export function RepoProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const parsed = parseGitHubUrl(url);
-      if (!parsed) {
-        throw new Error("Invalid GitHub URL provided");
+      if (!parsed || url.includes("?")) {
+        throw new Error("Invalid Repository URL. Please use the format: https://github.com/owner/repository");
       }
 
       // We do these two network calls in parallel when possible, but repo tree 
