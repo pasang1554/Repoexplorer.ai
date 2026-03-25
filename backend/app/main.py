@@ -18,9 +18,8 @@ app.add_middleware(
 async def startup_event():
     from app.core.config import settings
     if not settings.GOOGLE_API_KEY:
-        logger.error("❌ GOOGLE_API_KEY is NOT set in environment variables!")
+        logger.error("❌ GOOGLE_API_KEY is NOT set!")
     else:
-        # Log masked key for verification
         masked = settings.GOOGLE_API_KEY[:4] + "..." + settings.GOOGLE_API_KEY[-4:]
         logger.info(f"✅ GOOGLE_API_KEY is set: {masked}")
 
@@ -35,11 +34,29 @@ async def root():
 @app.get("/api/health")
 async def health_check():
     from app.core.config import settings
+    from app.services.google_service import get_google_llm
+    from langchain_core.messages import HumanMessage
+    
     key_exists = bool(settings.GOOGLE_API_KEY and len(settings.GOOGLE_API_KEY) > 10)
+    ai_status = "untested"
+    ai_error = None
+    
+    if key_exists:
+        try:
+            llm = get_google_llm()
+            # Try a tiny query to test
+            resp = await llm.ainvoke([HumanMessage(content="hi")])
+            ai_status = "success"
+        except Exception as e:
+            ai_status = "failed"
+            ai_error = str(e)
+            
     return {
         "status": "online",
         "google_api_key_configured": key_exists,
-        "model": "gemini-1.5-flash"
+        "ai_status": ai_status,
+        "ai_error": ai_error,
+        "model": "models/gemini-1.5-flash"
     }
 
 if __name__ == "__main__":
