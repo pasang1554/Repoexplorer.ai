@@ -1,5 +1,5 @@
 const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL?.trim() || "http://localhost:8003/api";
+    import.meta.env.VITE_API_BASE_URL?.trim() || "https://repoexplorer-ai.onrender.com/api";
 
 export async function ingestRepo(repoUrl: string) {
     const response = await fetch(`${API_BASE_URL}/repo/ingest`, {
