@@ -71,7 +71,8 @@ async def query_agent(repo_id: str, question: str) -> dict:
         response = await llm.ainvoke([HumanMessage(content=prompt)])
         answer = response.content if isinstance(response.content, str) else str(response.content)
     except Exception as exc:
-        logger.warning(f"Google Gemini query failed, using local fallback answer: {exc}")
+        logger.error(f"Google Gemini query failed: {str(exc)}")
+        logger.warning(f"Using local fallback answer due to error: {exc}")
         answer = _build_fallback_answer(question, context, sources)
 
     return {
