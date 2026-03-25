@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Bot, User, FileCode2, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
@@ -97,18 +95,9 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <SyntaxHighlighter
-        language={language}
-        style={oneDark}
-        customStyle={{
-          margin: 0,
-          padding: "1rem",
-          fontSize: "0.75rem",
-          background: "transparent",
-        }}
-      >
-        {code}
-      </SyntaxHighlighter>
+      <pre className="overflow-x-auto bg-slate-950 p-4 text-xs text-slate-100">
+        <code className={`language-${language}`}>{code}</code>
+      </pre>
     </div>
   );
 }

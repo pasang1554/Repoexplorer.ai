@@ -1,5 +1,4 @@
 import os
-import shutil
 from git import Repo
 from app.core.config import settings
 from app.core.logging import logger
@@ -17,9 +16,8 @@ class GitHubService:
         os.makedirs(settings.REPOS_DIR, exist_ok=True)
         
         if os.path.exists(local_path):
-            logger.info(f"Repository {repo_name} already exists. Removing to re-clone.")
-            # For simplicity, remove and clone. In production, 'git pull' would be faster.
-            shutil.rmtree(local_path)
+            logger.info(f"Repository {repo_name} already exists. Reusing local clone.")
+            return local_path
             
         logger.info(f"Cloning {repo_url} into {local_path}...")
         Repo.clone_from(repo_url, local_path)

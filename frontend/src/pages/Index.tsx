@@ -9,37 +9,17 @@ import { TypingIndicator } from "@/components/TypingIndicator";
 import { RepoOverview } from "@/components/RepoOverview";
 import { ChatHistory } from "@/components/ChatHistory";
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
-import { MOCK_REPO_INFO } from "@/lib/types";
-import { ingestRepo, queryRepo } from "@/lib/api";
+import { queryRepo } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-
-const MOCK_RESPONSE = `This repository is a **React-based UI library** that provides a comprehensive set of components for building modern web applications.
-
-## Key Architecture
-
-The project follows a **component-driven architecture** with the following structure:
-
-\`\`\`typescript
-// Entry point
-import { createRoot } from 'react-dom/client';
-import App from './App';
-
-createRoot(document.getElementById('root')!).render(<App />);
-\`\`\`
-
-### Main Patterns Used:
-- **Compound Components** for complex UI elements
-- **Render Props** for flexible rendering
-- **Custom Hooks** for reusable logic
-
-The codebase is well-organized with clear separation of concerns.`;
+import { useRepo } from "@/contexts/RepoContext";
 
 export default function HomePage() {
   const [repoLoaded, setRepoLoaded] = useState(false);
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isIngesting, setIsIngesting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [repoId, setRepoId] = useState<string | null>(null);
+  const { repoId, repoInfo, loadRepo } = useRepo();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,24 +27,31 @@ export default function HomePage() {
   }, [messages, isTyping]);
 
   const handleRepoSubmit = async (url: string) => {
+    if (isIngesting) return null;
+
+    setIsIngesting(true);
     setIsTyping(true);
     try {
-      const result = await ingestRepo(url);
-      setRepoId(result.repo_id);
+      const newRepoId = await loadRepo(url);
+      if (!newRepoId) throw new Error("Failed to load repository details.");
+      
       setRepoLoaded(true);
       setMessages([{
           id: crypto.randomUUID(),
           role: "assistant",
-          content: `Successfully ingested **${result.repo_id}**. You can now ask any questions about the codebase.`,
+          content: `Successfully ingested **${newRepoId}**. You can now ask any questions about the codebase.`,
           timestamp: new Date(),
       }]);
+      return newRepoId;
     } catch (e: any) {
       toast({
         title: "Ingestion Failed",
         description: e.message,
         variant: "destructive",
       });
+      return null;
     } finally {
+      setIsIngesting(false);
       setIsTyping(false);
     }
   };
@@ -83,6 +70,40 @@ export default function HomePage() {
 
     try {
       const result = await queryRepo(repoId, content);
+      const aiMsg: ChatMessageType = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: result.answer,
+        sourceFiles: result.sources,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (e: any) {
+      toast({
+        title: "Query Failed",
+        description: e.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleExampleSelect = async (question: string) => {
+    const nextRepoId = await handleRepoSubmit("https://github.com/facebook/react");
+    if (!nextRepoId) return;
+
+    const userMsg: ChatMessageType = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: question,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setIsTyping(true);
+
+    try {
+      const result = await queryRepo(nextRepoId, question);
       const aiMsg: ChatMessageType = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -121,10 +142,10 @@ export default function HomePage() {
           </p>
         </motion.div>
 
-        <RepoUrlInput onSubmit={handleRepoSubmit} />
+        <RepoUrlInput onSubmit={handleRepoSubmit} disabled={isIngesting} />
 
         <div className="mt-10">
-          <ExampleQuestions onSelect={(q) => { handleRepoSubmit("https://github.com/facebook/react"); setTimeout(() => handleSend(q), 300); }} />
+          <ExampleQuestions onSelect={handleExampleSelect} />
         </div>
       </div>
     );
@@ -134,8 +155,8 @@ export default function HomePage() {
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* Sidebar */}
       <aside className="hidden w-72 shrink-0 space-y-4 overflow-y-auto border-r border-border bg-card/50 p-4 lg:block">
-        <RepoUrlInput onSubmit={handleRepoSubmit} compact />
-        <RepoOverview repo={MOCK_REPO_INFO} />
+        <RepoUrlInput onSubmit={handleRepoSubmit} compact disabled={isIngesting} />
+        {repoInfo && <RepoOverview repo={repoInfo} />}
         <ChatHistory />
       </aside>
 

@@ -10,17 +10,13 @@ dependencies = [
     "langchain",
     "langgraph",
     "chromadb",
-    "sentence-transformers",
     "langchain-groq",
     "langchain-chroma",
-    "langchain-text-splitters",
     "groq",
     "gitpython",
     "pydantic",
     "pydantic-settings",
     "python-dotenv",
-    "onnxruntime==1.16.3",
-    "torch==2.2.2",
     "numpy<2",
 ]
 

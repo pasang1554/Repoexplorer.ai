@@ -1,49 +1,37 @@
-# RepoExplorer.ai - Backend
+# RepoExplorer.ai Backend
 
-Agentic RAG-powered GitHub repository explorer. Build with FastAPI, LangGraph, Groq, and ChromaDB.
+Agentic RAG-powered GitHub repository explorer built with FastAPI, LangGraph, Groq, and ChromaDB.
 
-## 🚀 Setup Instructions (using uv)
+## Setup
 
-1. **Install uv** (if you haven't already):
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
+1. Install dependencies:
 
-2. **Clone the repository** and navigate to the backend folder:
-   ```bash
-   cd backend
-   ```
+```powershell
+cd backend
+uv sync
+```
 
-3. **Install dependencies**:
-   ```bash
-   uv sync
-   ```
+2. Create `.env` from `.env.example` and add your Groq API key:
 
-4. **Environment Variables**:
-   Copy `.env.example` to `.env` and add your Groq API Key:
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env`:
-   ```env
-   GROQ_API_KEY=gsk_your_key_here
-   ```
+```env
+GROQ_API_KEY=gsk_your_key_here
+```
 
-5. **Run the Backend**:
-   ```bash
-   uv run uvicorn app.main:app --reload
-   ```
+3. Run the backend:
 
-## 🛠 Features
+```powershell
+uv run uvicorn app.main:app --reload --port 8003
+```
 
-- **Multi-repo Support**: Ingest any public GitHub repository.
-- **Agentic RAG**: Uses LangGraph to decide when to retrieve context.
-- **Code-aware Chunking**: Better retrieval for programming languages.
-- **Fast Inference**: Powered by Groq LLMs.
-- **Persistent Storage**: ChromaDB stores vector embeddings locally.
+## Features
 
-## 📡 API Endpoints
+- Multi-repo support for public GitHub repositories
+- Agentic RAG workflow using LangGraph
+- Code-aware chunking for better retrieval
+- Persistent local ChromaDB storage
 
-- `POST /api/repo/ingest`: Clone and index a repository.
-- `POST /api/ai/query`: Ask questions about an indexed repository.
-- `GET /`: Health check.
+## API Endpoints
+
+- `POST /api/repo/ingest`
+- `POST /api/ai/query`
+- `GET /`

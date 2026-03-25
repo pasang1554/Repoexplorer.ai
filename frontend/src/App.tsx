@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppHeader } from "@/components/AppHeader";
+import { RepoProvider } from "@/contexts/RepoContext";
 import WelcomePage from "./pages/WelcomePage.tsx";
 import Index from "./pages/Index.tsx";
 import StructurePage from "./pages/StructurePage.tsx";
@@ -15,18 +16,20 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppHeader />
-        <Routes>
-          <Route path="/" element={<WelcomePage />} />
-          <Route path="/explore" element={<Index />} />
-          <Route path="/structure" element={<StructurePage />} />
-          <Route path="/insights" element={<InsightsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <RepoProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppHeader />
+          <Routes>
+            <Route path="/" element={<WelcomePage />} />
+            <Route path="/explore" element={<Index />} />
+            <Route path="/structure" element={<StructurePage />} />
+            <Route path="/insights" element={<InsightsPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </RepoProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

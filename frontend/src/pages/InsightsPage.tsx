@@ -1,15 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Network, GitFork, Workflow, Boxes, Route } from "lucide-react";
 import { FlowCanvas } from "@/components/insights/FlowCanvas";
 import { InsightLegend } from "@/components/insights/InsightLegend";
-import {
-  architectureNodes, architectureEdges,
-  dependencyNodes, dependencyEdges,
-  functionNodes, functionEdges,
-  moduleNodes, moduleEdges,
-  codeFlowNodes, codeFlowEdges,
-} from "@/lib/insightsData";
+import { useRepo } from "@/contexts/RepoContext";
+import { generateGraphs } from "@/lib/insightsGenerator";
 
 const tabs = [
   { id: "architecture", label: "Architecture", icon: Network, description: "High-level system architecture and component hierarchy" },
@@ -21,17 +16,26 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]["id"];
 
-const tabData: Record<TabId, { nodes: any[]; edges: any[] }> = {
-  architecture: { nodes: architectureNodes, edges: architectureEdges },
-  dependencies: { nodes: dependencyNodes, edges: dependencyEdges },
-  functions: { nodes: functionNodes, edges: functionEdges },
-  modules: { nodes: moduleNodes, edges: moduleEdges },
-  codeflow: { nodes: codeFlowNodes, edges: codeFlowEdges },
-};
-
 export default function InsightsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("architecture");
   const currentTab = tabs.find((t) => t.id === activeTab)!;
+  
+  const { fileTree, repoInfo } = useRepo();
+
+  // Generate the node/edge data based off the loaded repo's file tree
+  const tabData = useMemo(() => {
+    if (!fileTree || fileTree.length === 0) return null;
+    return generateGraphs(fileTree);
+  }, [fileTree]);
+
+  if (!repoInfo || !tabData) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <p className="text-muted-foreground">Please load a repository from the Explore tab first to view insights.</p>
+      </div>
+    );
+  }
+
   const { nodes, edges } = tabData[activeTab];
 
   return (

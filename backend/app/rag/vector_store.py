@@ -20,3 +20,9 @@ def get_vector_store(collection_name: str) -> Chroma:
         collection_name=safe_name,
         embedding_function=embedding_function
     )
+
+
+def get_collection_count(collection_name: str) -> int:
+    safe_name = "".join([c if c.isalnum() else "_" for c in collection_name])
+    collection = chroma_client.get_or_create_collection(name=safe_name)
+    return collection.count()

@@ -18,6 +18,7 @@ export interface RepoInfo {
     login: string;
     avatarUrl: string;
   };
+  defaultBranch?: string;
 }
 
 export interface FileTreeNode {

@@ -3,10 +3,39 @@ import { FolderTree, Search } from "lucide-react";
 import { useState } from "react";
 import { FileTree } from "@/components/FileTree";
 import { RepoOverview } from "@/components/RepoOverview";
-import { MOCK_FILE_TREE, MOCK_REPO_INFO } from "@/lib/types";
+import { useRepo } from "@/contexts/RepoContext";
 
 export default function StructurePage() {
   const [search, setSearch] = useState("");
+  const { repoInfo, fileTree } = useRepo();
+
+  const countNodes = (nodes: any[]): { files: number; dirs: number } => {
+    let files = 0;
+    let dirs = 0;
+    for (const n of nodes) {
+      if (n.type === "dir") {
+        dirs++;
+        if (n.children) {
+          const childCount = countNodes(n.children);
+          files += childCount.files;
+          dirs += childCount.dirs;
+        }
+      } else {
+        files++;
+      }
+    }
+    return { files, dirs };
+  };
+
+  const { files, dirs } = fileTree ? countNodes(fileTree) : { files: 0, dirs: 0 };
+
+  if (!repoInfo) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+        <p className="text-muted-foreground">Please load a repository from the Explore tab first.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-5xl py-8">
@@ -18,7 +47,7 @@ export default function StructurePage() {
           <div>
             <h1 className="text-lg font-bold text-foreground">Repository Structure</h1>
             <p className="text-xs text-muted-foreground">
-              {MOCK_REPO_INFO.fullName} — browse the project tree
+              {repoInfo.fullName} — browse the project tree
             </p>
           </div>
         </div>
@@ -47,7 +76,7 @@ export default function StructurePage() {
 
           {/* Tree */}
           <div className="p-3">
-            <FileTree tree={MOCK_FILE_TREE} />
+            <FileTree tree={fileTree || []} />
           </div>
         </motion.div>
 
@@ -57,16 +86,16 @@ export default function StructurePage() {
           transition={{ delay: 0.2 }}
           className="space-y-4"
         >
-          <RepoOverview repo={MOCK_REPO_INFO} />
+          <RepoOverview repo={repoInfo} />
 
           <div className="rounded-xl border border-border bg-card p-5">
             <h3 className="mb-3 text-xs font-semibold text-foreground">Quick Stats</h3>
             <div className="space-y-2">
               {[
-                { label: "Total Files", value: "142" },
-                { label: "Directories", value: "23" },
-                { label: "Lines of Code", value: "12,847" },
-                { label: "Contributors", value: "38" },
+                { label: "Total Files", value: files.toString() },
+                { label: "Directories", value: dirs.toString() },
+                { label: "Lines of Code", value: "~" },
+                { label: "Contributors", value: "~" },
               ].map((s) => (
                 <div key={s.label} className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">{s.label}</span>

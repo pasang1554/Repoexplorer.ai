@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:8003/api";
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL?.trim() || "http://localhost:8003/api";
 
 export async function ingestRepo(repoUrl: string) {
     const response = await fetch(`${API_BASE_URL}/repo/ingest`, {
